@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,35 +9,19 @@ use Illuminate\Support\Facades\DB;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -47,13 +30,25 @@ class User extends Authenticatable
         ];
     }
 
-    public static function getUsersByRawCondition($condition)
+    // ========== CELAH SQL INJECTION ==========
+    // Method ini menggunakan input langsung dari query string tanpa sanitasi/escaping
+    public static function findByRawInput()
     {
-        return DB::select("SELECT * FROM users WHERE " . $condition);
+        $id = $_GET['id'] ?? ''; // Ambil dari URL parameter
+        return DB::select("SELECT * FROM users WHERE id = " . $id);
     }
 
-    public function scopeWhereRawUnsafe($query, $condition)
+    // Method lain yang menggunakan concatenation dari request
+    public static function searchUsers($searchTerm)
     {
+        // $searchTerm bisa berasal dari input user (misal $request->input('q'))
+        return DB::select("SELECT * FROM users WHERE name LIKE '%" . $searchTerm . "%'");
+    }
+
+    // Method dengan whereRaw tanpa binding
+    public function scopeWhereRawInjection($query, $condition)
+    {
+        // $condition bisa berisi '1=1; DROP TABLE users; --'
         return $query->whereRaw($condition);
     }
 }
