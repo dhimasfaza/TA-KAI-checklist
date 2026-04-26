@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 
 class User extends Authenticatable
 {
@@ -30,27 +31,50 @@ class User extends Authenticatable
         ];
     }
 
-    // ========== CELAH SQL INJECTION (Testing SonarQube) ==========
-    // Method ini menggunakan input langsung dari query string tanpa sanitasi/escaping
-    public static function findByRawInput()
+    // ===============================
+    // 🔴 SQL INJECTION - HIGH RISK
+    // ===============================
+
+    // Case 1: Direct raw query dari Request
+    public static function findByRawInput(Request $request)
     {
-        $id = $_GET['id'] ?? '';
-        return DB::select("SELECT * FROM users WHERE id = " . $id);
+        $id = $request->input('id');
+
+        // ❌ Vulnerable: langsung inject ke query
+        return DB::select("SELECT * FROM users WHERE id = $id");
     }
 
-    // Method lain yang menggunakan concatenation dari input request
-    public static function searchUsers($searchTerm)
+    // Case 2: LIKE query dengan concatenation
+    public static function searchUsers(Request $request)
     {
-        // $searchTerm dapat berasal dari input user (misal $request->input('q'))
-        return DB::select("SELECT * FROM users WHERE name LIKE '%" . $searchTerm . "%'");
+        $search = $request->input('q');
+
+        // ❌ Vulnerable
+        return DB::select(
+            "SELECT * FROM users WHERE name LIKE '%$search%'"
+        );
     }
 
-    // Method dengan whereRaw tanpa parameter binding
-    public function scopeWhereRawInjection($query, $condition)
+    // Case 3: whereRaw injection
+    public function scopeWhereRawInjection($query, Request $request)
     {
-        // $condition bisa berisi '1=1; DROP TABLE users; --'
+        $condition = $request->input('condition');
+
+        // ❌ Sangat berbahaya
         return $query->whereRaw($condition);
     }
 
-    // Dummy comment untuk memicu perubahan commit
+    // Case 4: Multiple parameter injection
+    public static function filterUsers(Request $request)
+    {
+        $email = $request->input('email');
+        $name  = $request->input('name');
+
+        // ❌ Kombinasi injection
+        return DB::select(
+            "SELECT * FROM users 
+             WHERE email = '$email' 
+             AND name = '$name'"
+        );
+    }
 }
