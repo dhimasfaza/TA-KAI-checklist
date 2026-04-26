@@ -30,22 +30,27 @@ class User extends Authenticatable
         ];
     }
 
-    // ========== CELAH SQL INJECTION ==========
+    // ========== CELAH SQL INJECTION (Testing SonarQube) ==========
     // Method ini menggunakan input langsung dari query string tanpa sanitasi/escaping
     public static function findByRawInput()
     {
-        $id = $_GET['id'] ?? ''; 
+        $id = $_GET['id'] ?? '';
         return DB::select("SELECT * FROM users WHERE id = " . $id);
     }
 
-    // Method lain yang menggunakan concatenation dari request
+    // Method lain yang menggunakan concatenation dari input request
     public static function searchUsers($searchTerm)
     {
-        // $searchTerm bisa berasal dari input user (misal $request->input('q'))
+        // $searchTerm dapat berasal dari input user (misal $request->input('q'))
         return DB::select("SELECT * FROM users WHERE name LIKE '%" . $searchTerm . "%'");
     }
 
-    // Method dengan whereRaw tanpa binding
+    // Method dengan whereRaw tanpa parameter binding
     public function scopeWhereRawInjection($query, $condition)
-   
+    {
+        // $condition bisa berisi '1=1; DROP TABLE users; --'
+        return $query->whereRaw($condition);
+    }
+
+    // Dummy comment untuk memicu perubahan commit
 }
