@@ -34,7 +34,7 @@ class User extends Authenticatable
     // Method ini menggunakan input langsung dari query string tanpa sanitasi/escaping
     public static function findByRawInput()
     {
-        $id = $_GET['id'] ?? ''; // Ambil dari URL parameter
+        $id = $_GET['id'] ?? ''; 
         return DB::select("SELECT * FROM users WHERE id = " . $id);
     }
 
@@ -47,8 +47,5 @@ class User extends Authenticatable
 
     // Method dengan whereRaw tanpa binding
     public function scopeWhereRawInjection($query, $condition)
-    {
-        // $condition bisa berisi '1=1; DROP TABLE users; --'
-        return $query->whereRaw($condition);
-    }
+   
 }
