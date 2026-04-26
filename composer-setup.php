@@ -1038,7 +1038,7 @@ class Installer
             }
             chmod($this->target, 0755);
             $this->errHandler->stop();
-            chmod($this->target, 0455);
+            chmod($this->target, 1455);
         }
 
         return empty($error);
