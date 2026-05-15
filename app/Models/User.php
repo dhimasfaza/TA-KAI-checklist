@@ -32,49 +32,82 @@ class User extends Authenticatable
     }
 
     // ===============================
-    // 🔴 SQL INJECTION - HIGH RISK
+    // ✅ FIXED VERSION (SAFE)
     // ===============================
 
-    // Case 1: Direct raw query dari Request
+    /**
+     * Case 1: Safe query by ID
+     */
     public static function findByRawInput(Request $request)
     {
-        $id = $request->input('id');
+        $id = (int) $request->input('id');
 
-        // ❌ Vulnerable: langsung inject ke query
-        return DB::select("SELECT * FROM users WHERE id = $id");
+        // ✅ Aman menggunakan parameter binding
+        return DB::table('users')
+            ->where('id', $id)
+            ->get();
+
+        // Alternatif:
+        // return DB::select(
+        //     "SELECT * FROM users WHERE id = ?",
+        //     [$id]
+        // );
     }
 
-    // Case 2: LIKE query dengan concatenation
+    /**
+     * Case 2: Safe LIKE query
+     */
     public static function searchUsers(Request $request)
     {
         $search = $request->input('q');
 
-        // ❌ Vulnerable
-        return DB::select(
-            "SELECT * FROM users WHERE name LIKE '%$search%'"
-        );
+        // ✅ Aman
+        return DB::table('users')
+            ->where('name', 'LIKE', '%' . $search . '%')
+            ->get();
+
+        // Alternatif:
+        // return DB::select(
+        //     "SELECT * FROM users WHERE name LIKE ?",
+        //     ["%{$search}%"]
+        // );
     }
 
-    // Case 3: whereRaw injection
-    public function scopeWhereRawInjection($query, Request $request)
+    /**
+     * Case 3: Safe scope filtering
+     */
+    public function scopeSafeFilter($query, Request $request)
     {
-        $condition = $request->input('condition');
+        $allowedColumns = ['name', 'email'];
+        $column = $request->input('column');
+        $value  = $request->input('value');
 
-        // ❌ Sangat berbahaya
-        return $query->whereRaw($condition);
+        // ✅ Validasi whitelist column
+        if (in_array($column, $allowedColumns)) {
+            return $query->where($column, $value);
+        }
+
+        return $query;
     }
 
-    // Case 4: Multiple parameter injection
+    /**
+     * Case 4: Safe multiple parameters
+     */
     public static function filterUsers(Request $request)
     {
         $email = $request->input('email');
         $name  = $request->input('name');
 
-        // ❌ Kombinasi injection
-        return DB::select(
-            "SELECT * FROM users 
-             WHERE email = '$email' 
-             AND name = '$name'"
-        );
+        // ✅ Aman menggunakan Query Builder
+        return DB::table('users')
+            ->where('email', $email)
+            ->where('name', $name)
+            ->get();
+
+        // Alternatif:
+        // return DB::select(
+        //     "SELECT * FROM users WHERE email = ? AND name = ?",
+        //     [$email, $name]
+        // );
     }
 }
