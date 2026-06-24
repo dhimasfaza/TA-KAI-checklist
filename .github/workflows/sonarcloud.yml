@@ -23,7 +23,6 @@ sonarcloud:
 name: SonarCloud Scan
 runs-on: ubuntu-latest
 
-```
 steps:
   - name: Checkout Repository
     uses: actions/checkout@v4
@@ -38,4 +37,3 @@ steps:
       args: >
         -Dsonar.projectKey=dhimasfaza_TA-KAI-checklist
         -Dsonar.organization=ta-faza
-```
