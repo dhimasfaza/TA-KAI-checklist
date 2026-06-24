@@ -9,9 +9,6 @@ pull_request:
 branches:
 - main
 
-schedule:
-- cron: '*/5 * * * *'
-
 workflow_dispatch:
 
 permissions:
@@ -20,7 +17,6 @@ pull-requests: read
 
 jobs:
 sonarcloud:
-name: SonarCloud Scan
 runs-on: ubuntu-latest
 
 steps:
