@@ -183,11 +183,11 @@ Comprehensive documentation of methodology, implementation, experimentation, and
 
 ## 👨‍💻 Author
 
-**Dhimas Faza**
+**Dhimas Faza Wicaksana**
 
 Information Systems
 
-Universitas Pembangunan Nasional "Veteran" Jawa Timur
+Telkom University, 2026
 
 Research Area:
 DevSecOps • Application Security • SRE • Cyber Security • Software Quality
